@@ -16,6 +16,20 @@ $paginator = new Comments_Paginator($mysqli, $post_id, [
   <head>
     <!-- The default, built-in template supports the Twitter Bootstrap pagination styles. -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <style type="text/css">
+    	.comments {
+    		margin: 15px;
+    	}
+    	.comment-child {
+    		
+    	}
+    	.comment-item {
+    		padding: 10px;
+    		border-radius: 5px;
+    		margin: 5px 0px;
+    		border: 1px solid #ccc;
+    	}
+    </style>
   </head>
   <body>
 
