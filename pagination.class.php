@@ -141,6 +141,7 @@ class Comments_Paginator
     {
     	$has_childs = !empty($comment['childs']);
     	$class = $has_childs ? "with-childs" : "without-childs";
+        $class .= ($level == 1) ? " comment__parent" : " comment__children";
 
     	$html = "<div class=\"comment-item comment-level-{$level} {$class}\" id=\"comment-{$comment['id']}\">";
     	$html .= "<div class=\"comment-text\">{$comment['comment']}</div>";
