@@ -138,27 +138,108 @@ class Comments_Paginator
     * Construct
      */
     public function getCommentHtml($comment, $level = 1)
-    {
+    {   
+        // Dummy Values
+        $comment['class'] = 1;
+        $comment['cur_class'] = 1;
+        $comment['username'] = 'Shahid';
+        $comment['cur_id'] = 1;
+        $comment['user'] = 1;
+        $comment['added'] = "123";
+        $comment['avatar'] = "https://fiverr-res.cloudinary.com/image/upload/t_profile_thumb,q_auto,f_auto/v1/attachments/profile/photo/807a71236f33466dfb16e34c301cffa0-79289421564712792515/JPEG_20190802_072630_137757505.jpg";
+        $comment['text'] = $comment['comment'];
+
     	$has_childs = !empty($comment['childs']);
-    	$class = $has_childs ? "with-childs" : "without-childs";
-        $class .= ($level == 1) ? " comment__parent" : " comment__children";
+        $type = ($level == 1) ? "parent" : "child";
+        $is_banned = isset($comment['banned']) || 0;
 
-    	$html = "<div class=\"comment-item comment-level-{$level} {$class}\" id=\"comment-{$comment['id']}\">";
-    	$html .= "<div class=\"comment-text\">{$comment['comment']}</div>";
+        $allow_reply = true;
+        if($level > 4) {
+            $allow_reply = false;
+        }
+        ?>
 
-    	if( $has_childs ) {
-    		$html .= "<div class=\"comment-child comment-child-level-{$level}\" id=\"comment-child-{$comment['id']}\">";
+        <?php ob_start(); ?>
+        <div data-comment-id="<?= $comment['id'] ?>" class="comment">
+            <div class="ajax comment__<?= $type ?>">
+                <img class="global__image-outer-wrap global__image-outer-wrap--avatar-small" src="<?= $comment['avatar'] ?>" />
+                <div id="comment_<?= $comment['id'] ?>" class="comment__summary">
+                    <div class="comment__author">
+                        <i class="comment__collapse-button fas fa-minus-square"></i>
+                        <i class="comment__expand-button fas fa-plus-square"></i>
+                        <div class="comment__username <?php echo ($is_banned ? 'comment__username--deleted' : '') ?>">
+                            <?= $comment['username'] ?>
+                            <?php if( $comment['class'] > 4 && !$is_banned ): ?>
+                                <i class="fas fa-gavel" title="Site staff"></i>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="<?php echo ($is_banned ? 'comment__delete-state' : 'comment__display-state') ?>">
+                        <div class="comment__description markdown markdown--resize-body">
+                            <p class="m-0"><?= $comment['text'] ?></p>
+                        </div>
+                    </div>
+                    <?php if(!$is_banned && ($allow_reply && $comment['cur_class'] > 5 || $comment['cur_id'] === $comment['user'])): ?>
+                        <div class="comment__edit-state is-hidden">
+                            <div class="comment__description">
+                                <form>
+                                    <input type="hidden" name="do" value="comment_edit">
+                                    <input type="hidden" name="comment_id" value="<?= $comment['id'] ?>">
+                                    <textarea class="form-control" name="description"><?= $comment['text'] ?></textarea>
+                                    <div class="align-button-container mt-2">
+                                        <a href="" class="btn btn-dark mr-2 btn-sm comment__submit-button js__comment-edit-save">Save Changes</a>
+                                        <div class="btn btn-secondary btn-sm comment__cancel-button js__comment-edit-cancel"><span>Cancel</span></div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
-	    	foreach ($comment['childs'] as $key => $child) {
-	    		$html .= $this->getCommentHtml($child, $level + 1);
-	    	}
+                    <div class="comment__actions">
+                        <div><?= $comment['added'] ?></div>
 
-	    	$html .= "</div>";
-    	}
+                        <?php if(!$is_banned && ($allow_reply && $comment['cur_class'] > 0)): ?>
+                            <div class="comment__actions__button js__comment-reply">Reply</div>
+                            <form>
+                                <input type="hidden" name="do" value="comment_report">
+                                <input type="hidden" name="comment_id" value="<?= $comment['id'] ?>">
+                                <div class="comment__actions__button js__comment-report">Report</div>
+                            </form>
+                        <?php endif; ?>
 
-    	$html .= "</div>";
+                        <?php if(!$is_banned && ($comment['cur_class'] > 5 || $comment['cur_id'] === $comment['user'])): ?>
+                            <div class="comment__actions__button js__comment-edit">Edit</div>
+                            <form>
+                                <input type="hidden" name="do" value="comment_delete">
+                                <input type="hidden" name="comment_id" value="<?= $comment['id'] ?>">
+                                <div class="comment__actions__button js__comment-delete">Delete</div>
+                            </form>
+                        <?php endif; ?>
 
-		return $html;
+                        <a rel="nofollow noopener" href="#comment_<?= $comment['id'] ?>" class="comment__actions__button">Permalink</a>
+                    </div>
+                    <div class="comment__collapse-state">
+                        <div class="comment__description markdown markdown--resize-body"><p class="m-0">Comment has been collapsed.</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comment Children -->
+            <div class="comment__children">
+                <?php if( $has_childs ) { ?>
+
+                    <?php foreach ($comment['childs'] as $key => $child) { ?>
+                        
+                        <?php echo $this->getCommentHtml($child, $level + 1); ?>
+
+                    <?php } ?>
+
+                <?php } ?>
+            </div>
+
+        </div>
+        <?php
+		return ob_get_clean();
     }
 
 	public function getLinks()
